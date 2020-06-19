@@ -8,9 +8,9 @@ Facebook allows us to download our own messenger data, giving a set of JSON file
 ### Getting the data
 The first step is to download a copy of your data from Facebook at the following page:
 
-'''
+```
 Settings > Your Facebook information > Download your information
-'''
+```
 
 Select "Messages" and ensure the format is "JSON" before clicking "Create File".
 Once this is downloaded and extracted, the JSON files can be found in the <chat name> folder within the "inbox" folder.
@@ -19,7 +19,7 @@ Once this is downloaded and extracted, the JSON files can be found in the <chat 
 ### Prerequisites
 The package_list.txt file contains all packages installed into the working environment and which versions are used. Key libraries are: matplotlib, Pandas, NumPy, NLTK.
 
-### The programs
+### Programs
 * Program load_and_preprocess.py produces a Pandas DataFrame where each entry is a message sent in the chat (along with relevant information).
 * Program plot_artsy_anon.py produces a plot of total word count against date for use as a wallpaper.
 * Program plot_polar.py produces plots of word (or message) count against time of day, day of the week, or month of the year as a polar plot.
