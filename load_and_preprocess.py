@@ -10,7 +10,7 @@ The end result is a Pandas DataFrame where
     > the columns are 
         >> name of the sender of the message
         >> message content
-        >> reactions
+        >> reactions given to the message by each chat participant
         >> five versions of the message content
         >> count of the number of raw words
     > the index is the message timestamp
@@ -29,6 +29,7 @@ from nltk.corpus import stopwords
 from nltk.stem import SnowballStemmer
 from nltk.stem import WordNetLemmatizer
 import pandas as pd
+import numpy as np
 
 
 # Set working directory 
@@ -59,12 +60,12 @@ def pd_load_messages(loc_str):
         
     # For each JSON file, load it and add the messages to the DataFrame
     for f in os.listdir(loc_str):
-        file = 'message_data/' + f
+        file = loc_str + "/" + f
         data = json.load(open(file, 'r'))
         df = df.append(pd.DataFrame(data['messages']), ignore_index=True)
       
     # Keep only the meaningful information
-    df = df[['sender_name', 'content', 'reactions', 'timestamp_ms']]
+    df = df[['sender_name', 'content', 'reactions', 'photos', 'timestamp_ms']]
     
     # The data is encoded as latin-1 so must be recoded as utf8 to preserve 
     # emojis
@@ -76,25 +77,33 @@ def pd_load_messages(loc_str):
             
     # Recode message content
     df['content'] = df.loc[:,'content'].apply(code)
-    
+
     # TODO
-    # Keep information on the reactions to messages by each chat participant 
-    # The below is passable for a chat with two participants if we assume 
-    # no-one reacts to their own message, since we only keep one reaction per
-    # message
-    df['reactions'] = df[df['reactions'].notnull()]['reactions'].apply(lambda x: x[0]['reaction'])
-    df['reactions'] = df[df['reactions'].notnull()]['reactions'].apply(code)
-  
+    # Keep multilevel column name indexing - seems to disappear after line 90
+
+    # Create new multilevel col with colnames (new_reactions, name)
+    participant_names = list(set(df.sender_name))
+    multi_cols = pd.MultiIndex.from_product([["reac"], participant_names])
+    reac_col = pd.DataFrame(np.nan, index=df.index, columns = multi_cols)
+    reac_count_col = pd.DataFrame(np.nan, index=df.index, columns=["reac_count"])
+    
+    df = pd.concat([df, reac_col, reac_count_col], axis=1)
+    
+    for index, row in df[df.reactions.notnull()].iterrows():
+        df.loc[index, "reac_count"] = len(row.reactions)
+        
+        for dic in row.reactions:
+            df.loc[index, ("reac", dic["actor"])] = code(dic["reaction"])
+        
     
     # Convert the POSIX format to Timestamp and then index DataFrame by it
     df['timestamp_ms'] = pd.to_datetime(df['timestamp_ms']/1000, unit='s')
     df = df.set_index("timestamp_ms")
     
-    
     return df
                 
 
-df = pd_load_messages('message_data')
+df = pd_load_messages('gc_message_data')
 df.head()
 
 
@@ -189,5 +198,7 @@ df = df.drop('processed', axis = 1)
 
 # Count the number of words in the raw list of each message
 df['word_count'] = df.loc[:,'raw'].apply(lambda x: len(x))
+df['emo_count'] = df.loc[:,'emo'].apply(lambda x: len(x))
 
-pickle.dump(df, open("main_df.pkl", 'wb'))
+
+pickle.dump(df, open("gc_df.pkl", 'wb'))
