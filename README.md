@@ -23,6 +23,7 @@ The package_list.txt file contains all packages installed into the working envir
 * Program load_and_preprocess.py produces a Pandas DataFrame where each entry is a message sent in the chat (along with relevant information).
 * Program plot_artsy_anon.py produces a plot of total word count against date for use as a wallpaper.
 * Program plot_polar.py produces plots of word (or message) count against time of day, day of the week, or month of the year as a polar plot.
+* Program gc_stats.py produces a table of statistics and several plots for inputted group chat data (e.g. message counts per person, heatmap of reaction-givers vs reaction-receivers, distribution of words, ...).
 
 
 ## Acknowledgements 
